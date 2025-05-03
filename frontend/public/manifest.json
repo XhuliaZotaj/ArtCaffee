@@ -1,0 +1,15 @@
+{
+	"short_name": "Digital Café",
+	"name": "Digital Café App",
+	"icons": [
+		{
+			"src": "cafe-icon.png",
+			"sizes": "64x64 32x32 24x24 16x16",
+			"type": "image/png"
+		}
+	],
+	"start_url": ".",
+	"display": "standalone",
+	"theme_color": "#5c3d2e",
+	"background_color": "#ffffff"
+}
