@@ -22,14 +22,14 @@ const Footer: React.FC = () => {
 				py: 3,
 				px: 2,
 				mt: "auto",
-				backgroundColor: "#5c3d2e",
+				backgroundColor: "#0A3012",
 				color: "white",
 			}}>
 			<Container maxWidth="lg">
 				<Grid container spacing={4}>
 					<Grid item xs={12} sm={4}>
 						<Typography variant="h6" gutterBottom>
-							Digital Café
+							ART COFFEE
 						</Typography>
 						<Typography variant="body2">
 							Experience coffee in a whole new way.
@@ -89,7 +89,7 @@ const Footer: React.FC = () => {
 							<br />
 							Bean City, BC 12345
 							<br />
-							Email: info@digitalcafe.com
+							Email: info@artcoffee.com
 							<br />
 							Phone: (123) 456-7890
 						</Typography>
@@ -98,7 +98,7 @@ const Footer: React.FC = () => {
 
 				<Box mt={3}>
 					<Typography variant="body2" align="center">
-						© {new Date().getFullYear()} Digital Café. All rights reserved.
+						© {new Date().getFullYear()} ART COFFEE. All rights reserved.
 					</Typography>
 				</Box>
 			</Container>

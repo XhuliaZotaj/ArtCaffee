@@ -106,7 +106,7 @@ const Navbar: React.FC = () => {
 	];
 
 	return (
-		<AppBar position="static" sx={{ backgroundColor: "#5c3d2e" }}>
+		<AppBar position="static" sx={{ backgroundColor: "#0A3012" }}>
 			<Container maxWidth="xl">
 				<Toolbar disableGutters>
 					{/* Desktop Logo */}
@@ -125,7 +125,7 @@ const Navbar: React.FC = () => {
 							color: "inherit",
 							textDecoration: "none",
 						}}>
-						DIGITAL CAFÉ
+						ART COFFEE
 					</Typography>
 
 					{/* Mobile Menu */}

@@ -66,7 +66,7 @@ const HomePage: React.FC = () => {
 					backgroundSize: "cover",
 					backgroundRepeat: "no-repeat",
 					backgroundPosition: "center",
-					backgroundImage: `url(https://source.unsplash.com/random?coffee)`,
+					backgroundImage: `url(https://i.pinimg.com/originals/b8/b2/11/b8b2117440bc9f0733850dfb4bb089f4.gif)`,
 					height: "60vh",
 				}}>
 				{/* Increase the priority of the hero background image */}
@@ -97,7 +97,7 @@ const HomePage: React.FC = () => {
 								variant="h3"
 								color="inherit"
 								gutterBottom>
-								Welcome to Digital Café
+								Welcome to Art Coffee
 							</Typography>
 							<Typography variant="h5" color="inherit" paragraph>
 								Experience coffee in a whole new way. Order, earn points, and
@@ -204,7 +204,7 @@ const HomePage: React.FC = () => {
 								<CardMedia
 									component="img"
 									height="200"
-									image="https://source.unsplash.com/random?latte"
+									image="https://i.pinimg.com/736x/1d/70/19/1d70193626ab481f037d9602970872ba.jpg"
 									alt="Signature Latte"
 								/>
 								<CardContent>
@@ -231,7 +231,7 @@ const HomePage: React.FC = () => {
 								<CardMedia
 									component="img"
 									height="200"
-									image="https://source.unsplash.com/random?breakfast"
+									image="https://i.pinimg.com/736x/af/a2/ce/afa2ce5db439d0864b329fdf2532bedb.jpg"
 									alt="Breakfast Deal"
 								/>
 								<CardContent>
@@ -258,7 +258,7 @@ const HomePage: React.FC = () => {
 								<CardMedia
 									component="img"
 									height="200"
-									image="https://source.unsplash.com/random?coffee-beans"
+									image="https://i.pinimg.com/736x/f3/e9/ac/f3e9acd0f9dff0a34cc986017b909896.jpg"
 									alt="Coffee Beans"
 								/>
 								<CardContent>

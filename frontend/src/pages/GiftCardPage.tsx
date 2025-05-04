@@ -67,22 +67,22 @@ const giftCardTemplates = [
 	{
 		id: 1,
 		name: "Birthday",
-		image: "https://source.unsplash.com/random?birthday",
+		image: "https://i.pinimg.com/736x/36/ad/9c/36ad9cedc7e78c160987fdae78a8cc8d.jpg",
 	},
 	{
 		id: 2,
 		name: "Thank You",
-		image: "https://source.unsplash.com/random?thankyou",
+		image: "https://i.pinimg.com/736x/b9/01/98/b901983ccdf72d8d5f615e7a6d6530ce.jpg",
 	},
 	{
 		id: 3,
 		name: "Congratulations",
-		image: "https://source.unsplash.com/random?congratulations",
+		image: "https://i.pinimg.com/736x/9f/96/a5/9f96a5a554ed25c65063011b55f139b1.jpg",
 	},
 	{
 		id: 4,
 		name: "Holiday",
-		image: "https://source.unsplash.com/random?holiday",
+		image: "https://i.pinimg.com/736x/d4/89/3d/d4893d3fd0d47ae805a84b5f45ae274e.jpg",
 	},
 ];
 
