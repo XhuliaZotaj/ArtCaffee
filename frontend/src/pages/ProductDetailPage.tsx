@@ -56,6 +56,23 @@ interface Product {
 	customizations: ProductCustomization[];
 }
 
+// Define API base URL
+const API_BASE_URL = "http://localhost:5000";
+
+// Helper function to get full image URL
+const getImageUrl = (imagePath: string) => {
+	// If the image path is already a full URL, return it
+	if (
+		imagePath &&
+		(imagePath.startsWith("http://") || imagePath.startsWith("https://"))
+	) {
+		return imagePath;
+	}
+
+	// Otherwise, prepend the API base URL
+	return `${API_BASE_URL}${imagePath}`;
+};
+
 const ProductDetailPage: React.FC = () => {
 	const { productId } = useParams<{ productId: string }>();
 	const navigate = useNavigate();
@@ -231,11 +248,18 @@ const ProductDetailPage: React.FC = () => {
 							component="img"
 							height="400"
 							image={
-								product.image_url ||
-								`https://source.unsplash.com/random?${product.category}`
+								product.image_url
+									? getImageUrl(product.image_url)
+									: `${API_BASE_URL}/static/images/${product.category}.jpg`
 							}
 							alt={product.name}
 							sx={{ objectFit: "cover" }}
+							onError={(e) => {
+								// Fallback image if the main one fails to load
+								const target = e.target as HTMLImageElement;
+								target.onerror = null; // Prevent infinite loop
+								target.src = `${API_BASE_URL}/static/images/default.jpg`;
+							}}
 						/>
 						{product.points_value > 0 && (
 							<Box sx={{ p: 1, bgcolor: "#f9f5eb" }}>
@@ -439,5 +463,3 @@ const ProductDetailPage: React.FC = () => {
 };
 
 export default ProductDetailPage;
-
-

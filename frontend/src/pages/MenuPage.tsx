@@ -30,7 +30,7 @@ import {
 // Define the API base URL
 const API_BASE_URL = "http://localhost:5000";
 
-// Mock data - used when API is unavailable
+// Mock data with updated image paths - used when API is unavailable
 const MOCK_PRODUCTS = [
 	{
 		id: 1,
@@ -38,7 +38,7 @@ const MOCK_PRODUCTS = [
 		description: "Strong coffee served in a small cup",
 		price: 2.99,
 		category: "coffee",
-		image_url: "https://i.pinimg.com/736x/f5/b2/06/f5b206a24f87c58f1c3af87ce2f8c0a2.jpg",
+		image_url: "/static/images/espresso.jpg",
 		points_value: 3,
 	},
 	{
@@ -47,7 +47,7 @@ const MOCK_PRODUCTS = [
 		description: "Espresso with steamed milk and foam",
 		price: 3.99,
 		category: "coffee",
-		image_url: "https://i.pinimg.com/736x/0a/2e/a5/0a2ea56614352399d164038ec22168fd.jpg",
+		image_url: "/static/images/cappuccino.jpg",
 		points_value: 4,
 	},
 	{
@@ -56,7 +56,7 @@ const MOCK_PRODUCTS = [
 		description: "Refreshing tea with antioxidants",
 		price: 2.5,
 		category: "tea",
-		image_url: "https://i.pinimg.com/736x/b4/74/e7/b474e7a6eeda43ac5dbb4b7c389eddf6.jpg",
+		image_url: "/static/images/green_tea.jpg",
 		points_value: 2,
 	},
 	{
@@ -65,7 +65,7 @@ const MOCK_PRODUCTS = [
 		description: "Buttery and flaky pastry",
 		price: 3.5,
 		category: "food",
-		image_url: "https://i.pinimg.com/736x/1b/74/c4/1b74c479c2a1b5941cdbb9d860b82047.jpg",
+		image_url: "/static/images/croissant.jpg",
 		points_value: 3,
 	},
 	{
@@ -74,7 +74,7 @@ const MOCK_PRODUCTS = [
 		description: "Rich chocolate cake with frosting",
 		price: 4.99,
 		category: "dessert",
-		image_url: "https://i.pinimg.com/736x/ab/7a/26/ab7a265c329704306279d0d23a233ec6.jpg",
+		image_url: "/static/images/chocolate_cake.jpg",
 		points_value: 5,
 	},
 	{
@@ -83,7 +83,7 @@ const MOCK_PRODUCTS = [
 		description: "Espresso with steamed milk",
 		price: 4.5,
 		category: "coffee",
-		image_url: "https://i.pinimg.com/736x/1d/70/19/1d70193626ab481f037d9602970872ba.jpg",
+		image_url: "/static/images/latte.jpg",
 		points_value: 4,
 	},
 	{
@@ -92,7 +92,7 @@ const MOCK_PRODUCTS = [
 		description: "Soft muffin with fresh blueberries",
 		price: 3.25,
 		category: "food",
-		image_url: "https://i.pinimg.com/736x/e6/3d/75/e63d75a1e436a22c411d3aa809805871.jpg",
+		image_url: "/static/images/blueberry_muffin.jpg",
 		points_value: 3,
 	},
 	{
@@ -101,7 +101,7 @@ const MOCK_PRODUCTS = [
 		description: "Spiced tea with milk",
 		price: 3.75,
 		category: "tea",
-		image_url: "https://i.pinimg.com/736x/54/15/3a/54153a12b79f27f83c6dc1b42279e6c8.jpg",
+		image_url: "/static/images/chai_latte.jpg",
 		points_value: 3,
 	},
 ];
@@ -115,6 +115,20 @@ interface Product {
 	image_url: string;
 	points_value: number;
 }
+
+// Add this helper function to get full image URL
+const getImageUrl = (imagePath: string) => {
+	// If the image path is already a full URL, return it
+	if (
+		imagePath &&
+		(imagePath.startsWith("http://") || imagePath.startsWith("https://"))
+	) {
+		return imagePath;
+	}
+
+	// Otherwise, prepend the API base URL
+	return `${API_BASE_URL}${imagePath}`;
+};
 
 const MenuPage: React.FC = () => {
 	const navigate = useNavigate();
@@ -220,8 +234,6 @@ const MenuPage: React.FC = () => {
 				Choose from our selection of premium coffee, tea, and food items
 			</Typography>
 
-		
-
 			{/* Category Filter Tabs */}
 			<Paper elevation={1} sx={{ mb: 4 }}>
 				<Tabs
@@ -282,10 +294,17 @@ const MenuPage: React.FC = () => {
 									component="img"
 									height="200"
 									image={
-										product.image_url ||
-										`https://source.unsplash.com/random?${product.category}`
+										product.image_url
+											? getImageUrl(product.image_url)
+											: `${API_BASE_URL}/static/images/${product.category}.jpg`
 									}
 									alt={product.name}
+									onError={(e) => {
+										// Fallback image if the main one fails to load
+										const target = e.target as HTMLImageElement;
+										target.onerror = null; // Prevent infinite loop
+										target.src = `${API_BASE_URL}/static/images/default.jpg`;
+									}}
 								/>
 								<CardContent sx={{ flexGrow: 1 }}>
 									<Box

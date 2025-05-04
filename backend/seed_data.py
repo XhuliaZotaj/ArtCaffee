@@ -30,14 +30,14 @@ def seed_database():
             db.session.add(table)
         db.session.commit()
         
-        # Add coffee products
+        # Add coffee products with static image URLs
         coffee_products = [
             {
                 "name": "Espresso",
                 "description": "A concentrated coffee beverage brewed by forcing hot water under pressure through finely ground coffee beans.",
                 "price": 2.99,
                 "category": "coffee",
-                "image_url": "https://source.unsplash.com/random?espresso",
+                "image_url": "/static/images/espresso.jpg",
                 "points_value": 3,
                 "customizations": [
                     {
@@ -57,7 +57,7 @@ def seed_database():
                 "description": "An espresso-based coffee drink that is prepared with steamed milk foam.",
                 "price": 3.99,
                 "category": "coffee",
-                "image_url": "https://source.unsplash.com/random?cappuccino",
+                "image_url": "/static/images/cappuccino.jpg",
                 "points_value": 4,
                 "customizations": [
                     {
@@ -77,7 +77,7 @@ def seed_database():
                 "description": "A coffee drink made with espresso and steamed milk.",
                 "price": 4.50,
                 "category": "coffee",
-                "image_url": "https://source.unsplash.com/random?latte",
+                "image_url": "/static/images/latte.jpg",
                 "points_value": 5,
                 "customizations": [
                     {
@@ -106,7 +106,7 @@ def seed_database():
                 "description": "A light, refreshing tea with subtle flavors.",
                 "price": 2.50,
                 "category": "tea",
-                "image_url": "https://source.unsplash.com/random?greentea",
+                "image_url": "/static/images/green_tea.jpg",
                 "points_value": 3,
                 "customizations": [
                     {
@@ -126,7 +126,7 @@ def seed_database():
                 "description": "A tea latte with spiced tea concentrate and steamed milk.",
                 "price": 4.25,
                 "category": "tea",
-                "image_url": "https://source.unsplash.com/random?chailatte",
+                "image_url": "/static/images/chai_latte.jpg",
                 "points_value": 4,
                 "customizations": [
                     {
@@ -150,7 +150,7 @@ def seed_database():
                 "description": "Buttery, flaky French pastry.",
                 "price": 2.50,
                 "category": "food",
-                "image_url": "https://source.unsplash.com/random?croissant",
+                "image_url": "/static/images/croissant.jpg",
                 "points_value": 3,
                 "customizations": []
             },
@@ -159,7 +159,7 @@ def seed_database():
                 "description": "Sweet muffin loaded with juicy blueberries.",
                 "price": 3.00,
                 "category": "food",
-                "image_url": "https://source.unsplash.com/random?muffin",
+                "image_url": "/static/images/blueberry_muffin.jpg",
                 "points_value": 3,
                 "customizations": []
             },
@@ -168,7 +168,7 @@ def seed_database():
                 "description": "Toasted artisan bread topped with fresh avocado.",
                 "price": 5.99,
                 "category": "food",
-                "image_url": "https://source.unsplash.com/random?avocadotoast",
+                "image_url": "/static/images/avocado_toast.jpg",
                 "points_value": 6,
                 "customizations": [
                     {
@@ -187,7 +187,7 @@ def seed_database():
                 "description": "Rich, moist chocolate cake with frosting.",
                 "price": 4.50,
                 "category": "dessert",
-                "image_url": "https://source.unsplash.com/random?chocolatecake",
+                "image_url": "/static/images/chocolate_cake.jpg",
                 "points_value": 5,
                 "customizations": []
             },
@@ -196,7 +196,7 @@ def seed_database():
                 "description": "Creamy, smooth classic cheesecake.",
                 "price": 4.99,
                 "category": "dessert",
-                "image_url": "https://source.unsplash.com/random?cheesecake",
+                "image_url": "/static/images/cheesecake.jpg",
                 "points_value": 5,
                 "customizations": [
                     {

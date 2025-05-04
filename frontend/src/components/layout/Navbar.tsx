@@ -20,7 +20,6 @@ import {
 import {
 	Menu as MenuIcon,
 	ShoppingCart as CartIcon,
-	LocalCafe as CafeIcon,
 	Loyalty as LoyaltyIcon,
 } from "@mui/icons-material";
 import { keyframes } from "@mui/system";
@@ -110,7 +109,17 @@ const Navbar: React.FC = () => {
 			<Container maxWidth="xl">
 				<Toolbar disableGutters>
 					{/* Desktop Logo */}
-					<CafeIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
+					<Box
+						component="img"
+						src="/icon.png"
+						alt="Art Coffee"
+						sx={{
+							display: { xs: "none", md: "flex" },
+							mr: 1,
+							height: 40,
+							width: 40,
+						}}
+					/>
 					<Typography
 						variant="h6"
 						noWrap
@@ -167,7 +176,17 @@ const Navbar: React.FC = () => {
 					</Box>
 
 					{/* Mobile Logo */}
-					<CafeIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
+					<Box
+						component="img"
+						src="/icon.png"
+						alt="Art Coffee"
+						sx={{
+							display: { xs: "flex", md: "none" },
+							mr: 1,
+							height: 32,
+							width: 32,
+						}}
+					/>
 					<Typography
 						variant="h5"
 						noWrap

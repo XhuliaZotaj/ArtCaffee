@@ -38,7 +38,11 @@ def create_order():
         
         item_total = unit_price * quantity
         total_amount += item_total
-        points_earned += product.points_value * quantity
+        
+        # Calculate loyalty points for this item based on the product's points_value
+        if product.points_value > 0:
+            item_points = product.points_value * quantity
+            points_earned += item_points
         
         order_items.append({
             'product_id': product.id,
@@ -88,7 +92,11 @@ def create_order():
         db.session.add(new_item)
     
     # Add loyalty points
-    user.loyalty_points += points_earned
+    if points_earned > 0:
+        user.loyalty_points += points_earned
+        
+    # Log loyalty points activity
+    print(f"User {user_id} earned {points_earned} points and used {points_used} points. New balance: {user.loyalty_points}")
     
     db.session.commit()
     

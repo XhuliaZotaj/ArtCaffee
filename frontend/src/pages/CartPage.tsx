@@ -100,115 +100,173 @@ const CartPage: React.FC = () => {
 		try {
 			setSubmitting(true);
 
-			// Prepare order data with actual product details
+			// Prepare order data for API
 			const orderItems = cartItems.map((item) => ({
 				product_id: item.product_id,
-				product_name: item.product?.name || "Unknown Product",
 				quantity: item.quantity,
-				price: item.product?.price || 0,
-				customizations: item.customizations,
+				customizations: item.customizations || {},
+				notes: item.notes || "",
 			}));
 
-			// Calculate points earned (1 point per dollar, rounded down)
-			const pointsEarned = Math.floor(subtotal);
-
-			// Calculate points used if usePoints is true
-			const pointsUsed = usePoints ? Math.floor(pointsDiscount * 10) : 0;
-
-			// Create new order
-			const newOrderId = Date.now();
-			const newOrder = {
-				id: newOrderId,
-				order_date: new Date().toISOString(),
-				status: "completed",
-				total_amount: total,
-				items_count: cartItems.reduce((sum, item) => sum + item.quantity, 0),
-				points_earned: pointsEarned,
+			// Create order payload
+			const orderPayload = {
 				items: orderItems,
+				use_points: usePoints,
+				table_number: tableNumber ? parseInt(tableNumber) : null,
 			};
 
-			// Get existing orders from localStorage or create empty array
-			const existingOrdersJson = localStorage.getItem("userOrders");
-			const existingOrders = existingOrdersJson
-				? JSON.parse(existingOrdersJson)
-				: [];
-
-			// Add new order at the beginning
-			const updatedOrders = [newOrder, ...existingOrders];
-
-			// Save updated orders to localStorage and CSV
-			saveToCSVWithLocalStorageFallback(
-				updatedOrders,
-				"digital-cafe-orders.csv",
-				"userOrders"
-			);
-
-			// Update point history
-			// Create a point history entry
-			const newPointHistoryEntry = {
-				order_id: newOrderId,
-				date: new Date().toISOString(),
-				points_earned: pointsEarned,
-				points_used: pointsUsed,
-			};
-
-			// Get existing point history
-			const existingHistoryJson = localStorage.getItem("pointHistory");
-			const existingHistory = existingHistoryJson
-				? JSON.parse(existingHistoryJson)
-				: [];
-
-			// Add new entry at the beginning
-			const updatedHistory = [newPointHistoryEntry, ...existingHistory];
-
-			// Save updated history to localStorage and CSV
-			saveToCSVWithLocalStorageFallback(
-				updatedHistory,
-				"digital-cafe-point-history.csv",
-				"pointHistory"
-			);
-
-			// Update user's loyalty points
-			if (user) {
-				// Calculate new loyalty points
-				const currentPoints = user.loyalty_points || 0;
-				const updatedPoints = currentPoints - pointsUsed + pointsEarned;
-
-				const updatedUser = {
-					...user,
-					loyalty_points: updatedPoints,
-				};
-
-				// Save updated user to localStorage and CSV
-				saveToCSVWithLocalStorageFallback(
-					[updatedUser],
-					"digital-cafe-user-data.csv",
-					"user"
+			// Send order to backend API
+			try {
+				const API_BASE_URL = "http://localhost:5000";
+				const response = await axios.post(
+					`${API_BASE_URL}/api/orders`,
+					orderPayload,
+					{
+						headers: {
+							Authorization: `Bearer ${localStorage.getItem("token")}`,
+							"Content-Type": "application/json",
+						},
+					}
 				);
 
-				// Refresh user context to update the UI
+				const orderData = response.data;
+
+				// Show success message with points information
+				let pointsMessage = "";
+				if (
+					orderData.order.points_earned > 0 ||
+					orderData.order.points_used > 0
+				) {
+					if (
+						orderData.order.points_earned > 0 &&
+						orderData.order.points_used > 0
+					) {
+						pointsMessage = ` You earned ${orderData.order.points_earned} points and used ${orderData.order.points_used} points.`;
+					} else if (orderData.order.points_earned > 0) {
+						pointsMessage = ` You earned ${orderData.order.points_earned} points!`;
+					} else if (orderData.order.points_used > 0) {
+						pointsMessage = ` You used ${orderData.order.points_used} points.`;
+					}
+				}
+
+				toast.success(`Order placed successfully!${pointsMessage}`);
+
+				// Refresh user profile to update loyalty points
 				await getProfile();
 
-				// Show the points earned in the success message
-				const pointsMessage =
-					pointsUsed > 0
-						? `You earned ${pointsEarned} points and used ${pointsUsed} points.`
-						: `You earned ${pointsEarned} points!`;
+				// Clear cart after successful order
+				clearCart();
 
-				toast.success(
-					`Order placed successfully! ${pointsMessage} CSV files have been downloaded for your records.`
+				// Navigate to orders page
+				navigate("/orders");
+			} catch (error) {
+				// Fallback to local storage if API fails
+				console.error(
+					"API order creation failed, using local storage fallback",
+					error
 				);
-			} else {
-				toast.success(
-					"Order placed successfully! CSV files have been downloaded for your records."
+
+				// Calculate points earned (1 point per dollar, rounded down)
+				const pointsEarned = Math.floor(subtotal);
+
+				// Calculate points used if usePoints is true
+				const pointsUsed = usePoints ? Math.floor(pointsDiscount * 10) : 0;
+
+				// Create new order
+				const newOrderId = Date.now();
+				const newOrder = {
+					id: newOrderId,
+					order_date: new Date().toISOString(),
+					status: "completed",
+					total_amount: total,
+					items_count: cartItems.reduce((sum, item) => sum + item.quantity, 0),
+					points_earned: pointsEarned,
+					items: orderItems,
+				};
+
+				// Get existing orders from localStorage or create empty array
+				const existingOrdersJson = localStorage.getItem("userOrders");
+				const existingOrders = existingOrdersJson
+					? JSON.parse(existingOrdersJson)
+					: [];
+
+				// Add new order at the beginning
+				const updatedOrders = [newOrder, ...existingOrders];
+
+				// Save updated orders to localStorage and CSV
+				saveToCSVWithLocalStorageFallback(
+					updatedOrders,
+					"digital-cafe-orders.csv",
+					"userOrders"
 				);
+
+				// Update point history
+				// Create a point history entry
+				const newPointHistoryEntry = {
+					order_id: newOrderId,
+					date: new Date().toISOString(),
+					points_earned: pointsEarned,
+					points_used: pointsUsed,
+				};
+
+				// Get existing point history
+				const existingHistoryJson = localStorage.getItem("pointHistory");
+				const existingHistory = existingHistoryJson
+					? JSON.parse(existingHistoryJson)
+					: [];
+
+				// Add new entry at the beginning
+				const updatedHistory = [newPointHistoryEntry, ...existingHistory];
+
+				// Save updated history to localStorage and CSV
+				saveToCSVWithLocalStorageFallback(
+					updatedHistory,
+					"digital-cafe-point-history.csv",
+					"pointHistory"
+				);
+
+				// Update user's loyalty points
+				if (user) {
+					// Calculate new loyalty points
+					const currentPoints = user.loyalty_points || 0;
+					const updatedPoints = currentPoints - pointsUsed + pointsEarned;
+
+					const updatedUser = {
+						...user,
+						loyalty_points: updatedPoints,
+					};
+
+					// Save updated user to localStorage and CSV
+					saveToCSVWithLocalStorageFallback(
+						[updatedUser],
+						"digital-cafe-user-data.csv",
+						"user"
+					);
+
+					// Refresh user context to update the UI
+					await getProfile();
+
+					// Show the points earned in the success message
+					const pointsMessage =
+						pointsUsed > 0
+							? `You earned ${pointsEarned} points and used ${pointsUsed} points.`
+							: `You earned ${pointsEarned} points!`;
+
+					toast.success(
+						`Order placed successfully! ${pointsMessage} (Local storage fallback used)`
+					);
+				} else {
+					toast.success(
+						"Order placed successfully! (Local storage fallback used)"
+					);
+				}
+
+				// Clear cart after successful order
+				clearCart();
+
+				// Navigate to orders page or confirmation
+				navigate("/orders");
 			}
-
-			// Clear cart after successful order
-			clearCart();
-
-			// Navigate to orders page or confirmation
-			navigate("/orders");
 		} catch (error) {
 			console.error("Error placing order:", error);
 			toast.error("Failed to place order. Please try again.");

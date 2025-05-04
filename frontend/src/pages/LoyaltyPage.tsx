@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
+import apiClient from "../utils/axiosConfig";
 import {
 	Container,
 	Typography,
@@ -149,22 +149,57 @@ const LoyaltyPage: React.FC = () => {
 			try {
 				setLoading(true);
 
-				// Try to load point history from localStorage
-				const pointHistory = getDataWithLocalStorageFallback(
-					"pointHistory",
-					MOCK_POINT_HISTORY
-				);
-				setPointHistory(pointHistory);
+				try {
+					// Try to fetch data from the API first
+					const [pointsResponse, rewardsResponse] = await Promise.all([
+						apiClient.get(`/api/loyalty/points`),
+						apiClient.get(`/api/loyalty/rewards`)
+					]);
 
-				// Create mock rewards with availability based on user's points
-				const userPoints = user?.loyalty_points || 0;
-				const mockRewardsWithAvailability = MOCK_REWARDS.map((reward) => ({
-					...reward,
-					is_available: userPoints >= reward.points_required,
-				}));
+					// Check if both responses were successful
+					const pointsSuccess =
+						pointsResponse.data && pointsResponse.data.success === true;
+					const rewardsSuccess =
+						rewardsResponse.data && rewardsResponse.data.success === true;
 
-				setRewards(mockRewardsWithAvailability);
-				setUsingMockData(true);
+					if (pointsSuccess && rewardsSuccess) {
+						// Set point history from API
+						if (pointsResponse.data.point_history) {
+							setPointHistory(pointsResponse.data.point_history);
+						}
+
+						// Set rewards from API
+						if (rewardsResponse.data.available_rewards) {
+							setRewards(rewardsResponse.data.available_rewards);
+						}
+
+						setUsingMockData(false);
+						// No need to show a toast on successful loading
+					} else {
+						throw new Error("API returned unsuccessful response");
+					}
+				} catch (apiError) {
+					console.error("API Error, falling back to mock data:", apiError);
+					toast.info("Could not connect to the server. Using demo data instead.");
+
+					// Try to load point history from localStorage
+					const pointHistory = getDataWithLocalStorageFallback(
+						"pointHistory",
+						MOCK_POINT_HISTORY
+					);
+					setPointHistory(pointHistory);
+
+					// Create mock rewards with availability based on user's points
+					const userPoints = user?.loyalty_points || 0;
+					const mockRewardsWithAvailability = MOCK_REWARDS.map((reward) => ({
+						...reward,
+						is_available: userPoints >= reward.points_required,
+					}));
+
+					setRewards(mockRewardsWithAvailability);
+					setUsingMockData(true);
+				}
+
 				setError(null);
 			} catch (error) {
 				console.error("Error fetching loyalty info:", error);
@@ -194,61 +229,104 @@ const LoyaltyPage: React.FC = () => {
 			setRedeeming(true);
 			setConfirmDialogOpen(false);
 
-			// Create a redemption code
-			const randomCode = Math.random()
-				.toString(36)
-				.substring(2, 8)
-				.toUpperCase();
-			setRedemptionCode(`REDEEM-${randomCode}`);
-
-			// Create a new point history entry for the redemption
-			const redemptionEntry = {
-				order_id: 0, // 0 indicates it's a redemption, not an order
-				date: new Date().toISOString(),
-				points_earned: 0,
-				points_used: selectedReward.points_required,
-				redemption_code: `REDEEM-${randomCode}`,
-				reward_name: selectedReward.name,
-			};
-
-			// Get existing point history
-			const existingHistory = getDataWithLocalStorageFallback(
-				"pointHistory",
-				[]
-			);
-
-			// Add new entry at the beginning
-			const updatedHistory = [redemptionEntry, ...existingHistory];
-
-			// Save to localStorage and as CSV
-			saveToCSVWithLocalStorageFallback(
-				updatedHistory,
-				"digital-cafe-point-history.csv",
-				"pointHistory"
-			);
-
-			// Update user's loyalty points in localStorage
-			if (user) {
-				const updatedUser = {
-					...user,
-					loyalty_points: user.loyalty_points - selectedReward.points_required,
-				};
-
-				// Save updated user to localStorage and CSV
-				saveToCSVWithLocalStorageFallback(
-					[updatedUser],
-					"digital-cafe-user-data.csv",
-					"user"
+			try {
+				// Call the API to redeem the reward
+				const response = await apiClient.post(
+					`/api/loyalty/rewards/${selectedReward.id}/redeem`,
+					{}
 				);
 
-				// Call getProfile to update the context
-				await getProfile();
-			}
+				// Check if the redemption was successful
+				if (response.data && response.data.success === true) {
+					// Set redemption code from API response
+					if (response.data.redemption_code) {
+						setRedemptionCode(response.data.redemption_code);
+					} else {
+						// Fallback code if API doesn't provide one
+						const randomCode = Math.random()
+							.toString(36)
+							.substring(2, 8)
+							.toUpperCase();
+						setRedemptionCode(`REDEEM-${randomCode}`);
+					}
 
-			setSuccessDialogOpen(true);
-			toast.success(
-				`Successfully redeemed ${selectedReward.name}! CSV files have been downloaded for your records.`
-			);
+					// Refresh user profile to update loyalty points
+					await getProfile();
+
+					// Show success dialog
+					setSuccessDialogOpen(true);
+					toast.success(`Successfully redeemed ${selectedReward.name}!`);
+				} else {
+					throw new Error(response.data?.error || "Redemption failed");
+				}
+			} catch (apiError: any) {
+				console.error("API redemption failed, using local fallback", apiError);
+
+				// Check if the API returned a specific error message
+				const errorMessage =
+					apiError.response?.data?.error || "Redemption failed";
+				if (errorMessage === "Not enough loyalty points") {
+					toast.error("You don't have enough loyalty points for this reward.");
+					return;
+				}
+
+				// Create a redemption code
+				const randomCode = Math.random()
+					.toString(36)
+					.substring(2, 8)
+					.toUpperCase();
+				setRedemptionCode(`REDEEM-${randomCode}`);
+
+				// Create a new point history entry for the redemption
+				const redemptionEntry = {
+					order_id: 0, // 0 indicates it's a redemption, not an order
+					date: new Date().toISOString(),
+					points_earned: 0,
+					points_used: selectedReward.points_required,
+					redemption_code: `REDEEM-${randomCode}`,
+					reward_name: selectedReward.name,
+				};
+
+				// Get existing point history
+				const existingHistory = getDataWithLocalStorageFallback(
+					"pointHistory",
+					[]
+				);
+
+				// Add new entry at the beginning
+				const updatedHistory = [redemptionEntry, ...existingHistory];
+
+				// Save to localStorage and as CSV
+				saveToCSVWithLocalStorageFallback(
+					updatedHistory,
+					"digital-cafe-point-history.csv",
+					"pointHistory"
+				);
+
+				// Update user's loyalty points in localStorage
+				if (user) {
+					const updatedUser = {
+						...user,
+						loyalty_points:
+							user.loyalty_points - selectedReward.points_required,
+					};
+
+					// Save updated user to localStorage and CSV
+					saveToCSVWithLocalStorageFallback(
+						[updatedUser],
+						"digital-cafe-user-data.csv",
+						"user"
+					);
+
+					// Call getProfile to update the context
+					await getProfile();
+				}
+
+				setSuccessDialogOpen(true);
+				toast.success(
+					`Successfully redeemed ${selectedReward.name}! (Local storage fallback used)`
+				);
+			}
 		} catch (error) {
 			console.error("Error redeeming reward:", error);
 			toast.error("Failed to redeem reward. Please try again.");
@@ -696,6 +774,7 @@ const LoyaltyPage: React.FC = () => {
 								backgroundColor: "#f9f5eb",
 								display: "inline-block",
 								mb: 2,
+								border: "2px dashed #b85c38",
 							}}>
 							<Typography
 								variant="h5"
@@ -703,6 +782,30 @@ const LoyaltyPage: React.FC = () => {
 								{redemptionCode}
 							</Typography>
 						</Paper>
+
+						<Box sx={{ mt: 3, textAlign: "left", px: 2 }}>
+							<Typography
+								variant="subtitle2"
+								color="text.secondary"
+								gutterBottom>
+								Reward Details:
+							</Typography>
+							<Paper sx={{ p: 2, bgcolor: "#f8f8f8" }}>
+								<Typography variant="body2">
+									<strong>Reward:</strong> {selectedReward?.name}
+								</Typography>
+								<Typography variant="body2">
+									<strong>Points Used:</strong>{" "}
+									{selectedReward?.points_required}
+								</Typography>
+								<Typography variant="body2">
+									<strong>Date:</strong> {new Date().toLocaleString()}
+								</Typography>
+								<Typography variant="body2">
+									<strong>Remaining Points:</strong> {user?.loyalty_points || 0}
+								</Typography>
+							</Paper>
+						</Box>
 					</Box>
 				</DialogContent>
 				<DialogActions>
